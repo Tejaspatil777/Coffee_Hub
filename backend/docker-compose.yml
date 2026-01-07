@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: coffeehub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: coffeehub
+      MYSQL_USER: coffeehub
+      MYSQL_PASSWORD: coffeehub123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    networks:
+      - coffeehub-network
+
+  backend:
+    build: .
+    container_name: coffeehub-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/coffeehub
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Tejas@777
+      JWT_SECRET: change_this_to_a_strong_secret_key_at_least_32_chars_long
+      JWT_EXPIRATION_MS: 3600000
+      JWT_REFRESH_EXPIRATION_MS: 604800000
+      STRIPE_SECRET_KEY: sk_test_xxx
+      STRIPE_WEBHOOK_SECRET: whsec_xxx
+      FRONTEND_BASE_URL: http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - coffeehub-network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  mysql_data:
+
+networks:
+  coffeehub-network:
+    driver: bridge
